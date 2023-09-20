@@ -1,0 +1,11 @@
+[workspace]
+
+members = [
+  "stm32-test",
+]
+
+[profile.release]
+# opt-level = 'z' #As of 2018-09-18 rustc supports two "optimize for size" levels: opt-level = "s" and "z".
+codegen-units = 1 # better optimizations
+debug = true # symbols are nice and they don't increase the size on Flash
+lto = true # better optimizations

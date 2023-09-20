@@ -1,0 +1,13 @@
+[package]
+edition = "2018"
+name = "hello_macro_derive"
+version = "0.1.0"
+
+[lib]
+name = "hello_macro_derive" # The name of the target.
+path = "src/lib.rs" # The source file of the target.
+proc-macro = true 
+
+[dependencies]
+quote = "1.0"
+syn = "1.0"

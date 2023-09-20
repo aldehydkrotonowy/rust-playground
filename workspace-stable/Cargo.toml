@@ -1,0 +1,18 @@
+[workspace]
+members = [
+  "basic_playground",
+  "split_str_lib",
+  "read_files",
+  "hello_macro",
+  'hello_macro_derive',
+  'pancakes',
+  'algorithms',
+  'rust_basics',
+  'triangle',
+  'std_adventure',
+  'witter_backend',
+  "tokio-tut",
+  "hello-c-world",
+  "good-api-tut",
+  "tokyo-my-redis-tut",
+]
