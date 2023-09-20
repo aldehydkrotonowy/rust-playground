@@ -1,0 +1,51 @@
+[submodule "submodules/rust-bindgen"]
+	path = submodules/rust-bindgen
+	url = git@github.com:rust-lang/rust-bindgen.git
+[submodule "submodules/clap"]
+	path = submodules/clap
+	url = git@github.com:clap-rs/clap.git
+[submodule "submodules/nannou"]
+	path = submodules/nannou
+	url = git@github.com:nannou-org/nannou.git
+[submodule "submodules/egui"]
+	path = submodules/egui
+	url = git@github.com:emilk/egui.git
+[submodule "submodules/cortex-m"]
+	path = submodules/cortex-m
+	url = git@github.com:rust-embedded/cortex-m.git
+[submodule "submodules/crochet"]
+	path = submodules/crochet
+	url = git@github.com:raphlinus/crochet.git
+[submodule "submodules/druid"]
+	path = submodules/druid
+	url = git@github.com:linebender/druid.git
+[submodule "submodules/hyper"]
+	path = submodules/hyper
+	url = git@github.com:hyperium/hyper.git
+[submodule "submodules/firecracker"]
+	path = submodules/firecracker
+	url = git@github.com:firecracker-microvm/firecracker.git
+[submodule "submodules/mio"]
+	path = submodules/mio
+	url = git@github.com:tokio-rs/mio.git
+[submodule "submodules/neural-net"]
+	path = submodules/neural-net
+	url = git@github.com:ccbrown/neural-net.git
+[submodule "submodules/RustScan"]
+	path = submodules/RustScan
+	url = git@github.com:RustScan/RustScan.git
+[submodule "submodules/sqlx"]
+	path = submodules/sqlx
+	url = git@github.com:launchbadge/sqlx.git
+[submodule "submodules/tauri"]
+	path = submodules/tauri
+	url = git@github.com:tauri-apps/tauri.git
+[submodule "submodules/stm32-rs"]
+	path = submodules/stm32-rs
+	url = git@github.com:stm32-rs/stm32-rs.git
+[submodule "submodules/tokio"]
+	path = submodules/tokio
+	url = git@github.com:tokio-rs/tokio.git
+[submodule "submodules/Fomos"]
+	path = submodules/Fomos
+	url = https://github.com/Ruddle/Fomos.git
