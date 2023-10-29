@@ -1,4 +1,5 @@
 [workspace]
+resolver = "2"
 members = [
   "basic_playground",
   "split_str_lib",
@@ -15,5 +16,5 @@ members = [
   "hello-c-world",
   "good-api-tut",
   "tokyo-my-redis-tut",
-  "worklogCalendar",
+  "worklog_calendar",
 ]
