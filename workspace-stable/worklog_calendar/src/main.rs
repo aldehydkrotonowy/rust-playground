@@ -62,44 +62,45 @@ struct Separators {
     week_sep_char: char,
     day_sep_char: char,
 }
-// let mut tmp = [0u8; 4];
-// let your_string = c.encode_utf8(&mut tmp);
+
 impl Separators {
-    fn init_sep() -> Separators {
+    fn init_sep(week_sep_char: char, day_sep_char: char, line_length: u8) -> Separators {
         Separators {
-            line_length: 35,
-            week_sep_char: '=',
-            day_sep_char: '-',
+            line_length,
+            week_sep_char,
+            day_sep_char,
         }
     }
 }
-struct LineSeparator<'a> {
-    day: &'a str,
-    week: &'a str,
+struct LineSeparator {
+    day: String,
+    week: String,
 }
-impl<'a> LineSeparator<'a> {
-    fn init(sep: Separators) -> LineSeparator<'a> {
-        let mut day_sep_buf: [u8; 35] = [0; 35];
-        let mut week_sep_buf: [u8; 35] = [0; 35];
-        let day_sep = sep.day_sep_char.encode_utf8(&mut day_sep_buf);
-        let week_sep = sep.week_sep_char.encode_utf8(&mut week_sep_buf);
-        println!("day sep {}, week sep {}", day_sep, week_sep);
-        LineSeparator { day: "", week: "" }
-    }
-    fn create_week_sep_line(sep: Separators) -> &'a str {
-        println!("create_week_sep_line in action, {}", sep.week_sep_char);
-        ""
-    }
-    fn create_day_sep_line(sep: Separators) -> &'a str {
-        println!("create_day_sep_line in action {}", sep.day_sep_char);
-        ""
+impl LineSeparator {
+    fn init(sep: Separators) -> LineSeparator {
+        let mut day_sep_string = String::new();
+        let mut week_sep_string = String::new();
+
+        let mut n = 1;
+        while n <= sep.line_length {
+            day_sep_string.push(sep.day_sep_char);
+            week_sep_string.push(sep.week_sep_char);
+            n += 1;
+        }
+
+        LineSeparator {
+            day: day_sep_string,
+            week: week_sep_string,
+        }
     }
 }
-impl<'a> std::fmt::Display for LineSeparator<'a> {
+
+impl std::fmt::Display for LineSeparator {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "(day: {}, week: {})", self.day, self.week)
     }
 }
+
 const LINE_LENGTH: u8 = 35;
 const WEEK_SEP_CHAR: char = '=';
 const DAY_SEP_CHAR: char = '-';
@@ -110,7 +111,7 @@ fn main() {
     println!("UTC time: {}", utc_time);
     println!("Local time: {}", local_time);
 
-    let separators: Separators = Separators::init_sep();
+    let separators: Separators = Separators::init_sep(WEEK_SEP_CHAR, DAY_SEP_CHAR, LINE_LENGTH);
     let sep_line: LineSeparator = LineSeparator::init(separators);
     println!("sep_line is {}", sep_line);
 }

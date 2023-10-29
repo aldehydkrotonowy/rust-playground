@@ -28,3 +28,6 @@ https://www.reddit.com/r/rust/comments/u4wedx/when_to_pass_in_self_vs_self_in_ru
 & -> a borrow. Gets returned to owner at the end of scope
 &mut -> An exclusive borrow. Guarantees that holder is the only one with a reference
 Self -> Move. Unless you return it explicitly, it is dropped at the end of scope
+
+
+git remote set-url origin git@github.com:aldehydkrotonowy/rust-playground.git
