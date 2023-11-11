@@ -1,4 +1,6 @@
-use chrono::{DateTime, Local, Utc};
+use std::ops::Sub;
+
+use chrono::{DateTime, Local, NaiveDate, TimeZone, Utc};
 
 #[allow(dead_code)]
 enum MONTHS {
@@ -94,13 +96,37 @@ impl LineSeparator {
         }
     }
 }
+#[derive(Debug)]
+struct DateRange {
+    from: NaiveDate,
+    to: NaiveDate,
+    range: Vec<NaiveDate>,
+}
+impl DateRange {
+    fn init(from: &str, to: &str) -> DateRange {
+        let from = match NaiveDate::parse_from_str(from, DATE_FORMAT) {
+            Ok(v) => v,
+            Err(e) => panic!("cannot parse -from- date"),
+        };
+        let to = match NaiveDate::parse_from_str(to, DATE_FORMAT) {
+            Ok(v) => v,
+            Err(e) => panic!("cannot parse -to- date"),
+        };
+        let mut range = Vec::new();
+        let diff = to.sub(from).num_days();
+        for (_idx, d) in from.iter_days().take(diff.try_into().unwrap()).enumerate() {
+            range.push(d)
+        }
+        DateRange { from, to, range }
+    }
+}
 
 impl std::fmt::Display for LineSeparator {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "(day: {}, week: {})", self.day, self.week)
     }
 }
-
+const DATE_FORMAT: &'static str = "%Y-%m-%d";
 const LINE_LENGTH: u8 = 35;
 const WEEK_SEP_CHAR: char = '=';
 const DAY_SEP_CHAR: char = '-';
@@ -114,5 +140,11 @@ fn main() {
     let separators: Separators = Separators::init_sep(WEEK_SEP_CHAR, DAY_SEP_CHAR, LINE_LENGTH);
     let sep_line: LineSeparator = LineSeparator::init(separators);
     println!("sep_line is {}", sep_line);
+
+    let from_date = Utc.with_ymd_and_hms(2023, 12, 1, 0, 0, 0).unwrap();
+    let formated = from_date.format("%d-%m-%Y");
+    println!("formated date {}", formated);
+
+    let dr = DateRange::init("2023-11-11", "2024-01-01");
+    println!("range date {:?}", dr)
 }
-// fn generate_dates(_from: DateTime<Local>, _to: DateTime<Local>) {}
