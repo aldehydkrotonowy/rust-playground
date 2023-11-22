@@ -1,49 +1,50 @@
 use chrono::{DateTime, Datelike, Local, Month, NaiveDate, TimeZone, Utc, Weekday};
 use std::ops::Sub;
 
-struct Separators {
+#[derive(Debug)]
+struct CallendarConfig {
+    date_format: String,
     line_length: u8,
+    weekend_marker: char,
+    weekend_line_marker: String,
+    week_line_sep: String,
+    day_line_sep: String,
     week_sep_char: char,
     day_sep_char: char,
 }
-
-impl Separators {
-    fn init_sep(week_sep_char: char, day_sep_char: char, line_length: u8) -> Separators {
-        Separators {
-            line_length,
-            week_sep_char,
-            day_sep_char,
-        }
-    }
-}
-struct LineSeparator {
-    day: String,
-    week: String,
-    weekend: String,
-}
-impl LineSeparator {
-    fn init(sep: Separators) -> LineSeparator {
+impl CallendarConfig {
+    fn init(
+        line_length: u8,
+        day_sep_char: char,
+        week_sep_char: char,
+        weekend_marker: char,
+    ) -> CallendarConfig {
         let mut day_sep_string = String::new();
         let mut week_sep_string = String::new();
-        let mut weekend_marker = String::new();
+        let mut weekend_line_marker = String::new();
 
         let mut n = 1;
-        while n <= sep.line_length {
-            day_sep_string.push(sep.day_sep_char);
-            week_sep_string.push(sep.week_sep_char);
+        while n <= line_length {
+            day_sep_string.push(day_sep_char);
+            week_sep_string.push(week_sep_char);
             n += 1;
         }
 
         let mut k = 1;
         while k <= 2 {
-            weekend_marker.push(WEEKEND_MARKER);
+            weekend_line_marker.push(weekend_marker);
             k += 1;
         }
 
-        LineSeparator {
-            day: day_sep_string,
-            week: week_sep_string,
-            weekend: weekend_marker,
+        CallendarConfig {
+            date_format: String::from("%Y-%m-%d"),
+            line_length,
+            weekend_marker,
+            weekend_line_marker: weekend_line_marker,
+            week_line_sep: week_sep_string,
+            day_line_sep: day_sep_string,
+            week_sep_char,
+            day_sep_char,
         }
     }
 }
@@ -55,12 +56,12 @@ struct DateRange {
     range: Vec<NaiveDate>,
 }
 impl DateRange {
-    fn init(from: &str, to: &str) -> DateRange {
-        let from = match NaiveDate::parse_from_str(from, DATE_FORMAT) {
+    fn init(from: &str, to: &str, config: CallendarConfig) -> DateRange {
+        let from = match NaiveDate::parse_from_str(from, config.date_format.as_str()) {
             Ok(v) => v,
             Err(e) => panic!("cannot parse -from- date"),
         };
-        let to = match NaiveDate::parse_from_str(to, DATE_FORMAT) {
+        let to = match NaiveDate::parse_from_str(to, config.date_format.as_str()) {
             Ok(v) => v,
             Err(e) => panic!("cannot parse -to- date"),
         };
@@ -111,41 +112,21 @@ impl DateUtils {
     }
 }
 
-impl std::fmt::Display for LineSeparator {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(
-            f,
-            "(day: {}, week: {}, weekend: {})",
-            self.day, self.week, self.weekend
-        )
-    }
-}
-const DATE_FORMAT: &'static str = "%Y-%m-%d";
-const LINE_LENGTH: u8 = 35;
-const WEEKEND_MARKER: char = '#';
-const WEEK_SEP_CHAR: char = '=';
-const DAY_SEP_CHAR: char = '-';
+// impl std::fmt::Display for CallendarConfig {
+//     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+//         write!(
+//             f,
+//             "(day_line_sep: {}, week_line_sep: {}, weekend_line_marker: {})",
+//             self.day_line_sep, self.week_line_sep, self.weekend_line_marker
+//         )
+//     }
+// }
+
 fn main() {
-    let utc_time: DateTime<Utc> = Utc::now();
-    let local_time: DateTime<Local> = utc_time.with_timezone(&Local);
-
-    println!("UTC time: {}", utc_time);
-    println!("Local time: {}", local_time);
-
-    let separators: Separators = Separators::init_sep(WEEK_SEP_CHAR, DAY_SEP_CHAR, LINE_LENGTH);
-
-    let sep_line: LineSeparator = LineSeparator::init(separators);
-    println!("sep_line is {}", sep_line);
-
-    let from_date = Utc.with_ymd_and_hms(2023, 12, 1, 0, 0, 0).unwrap();
-    let formated = from_date.format("%d-%m-%Y");
-    println!("formated date {}", formated);
-
-    let some_date = NaiveDate::parse_from_str("2023-11-21", DATE_FORMAT).unwrap();
-    let day = some_date.weekday();
-    println!("day is {:?}", day);
-
-    let dr = DateRange::init("2023-11-11", "2024-01-01");
+    let calendar_config = CallendarConfig::init(35, '-', '=', '#');
+    println!("calendar_config {:?}", calendar_config);
+    println!("-----------------------------------------------");
+    let dr = DateRange::init("2023-11-11", "2024-01-01", calendar_config);
     println!("range date {:?}", dr)
 }
 
@@ -154,17 +135,20 @@ mod tests {
     use super::*;
 
     fn get_naive_date(date: &str) -> NaiveDate {
-        NaiveDate::parse_from_str(date, DATE_FORMAT).unwrap()
+        NaiveDate::parse_from_str(date, "%Y-%m-%d").unwrap()
     }
 
     #[test]
     fn should_init_data_range() {
+        let calendar_config = CallendarConfig::init(35, '-', '=', '#');
         let from = "2023-11-11";
         let to = "2023-11-20";
-        let formated_from = NaiveDate::parse_from_str(from, DATE_FORMAT).unwrap();
-        let formated_to = NaiveDate::parse_from_str(to, DATE_FORMAT).unwrap();
+        let formated_from =
+            NaiveDate::parse_from_str(from, &calendar_config.date_format.as_str()).unwrap();
+        let formated_to =
+            NaiveDate::parse_from_str(to, &calendar_config.date_format.as_str()).unwrap();
 
-        let date_list = DateRange::init(from, to);
+        let date_list = DateRange::init(from, to, calendar_config);
         assert_eq!(date_list.from, formated_from);
         assert_eq!(date_list.to, formated_to);
         assert_eq!(date_list.range.len(), 10);
