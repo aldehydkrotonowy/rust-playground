@@ -2,7 +2,7 @@ use chrono::{DateTime, Datelike, Local, Month, NaiveDate, TimeZone, Utc, Weekday
 use std::ops::Sub;
 
 #[derive(Debug)]
-struct CallendarConfig {
+struct CalendarConfig {
     date_format: String,
     line_length: u8,
     weekend_marker: char,
@@ -12,13 +12,13 @@ struct CallendarConfig {
     week_sep_char: char,
     day_sep_char: char,
 }
-impl CallendarConfig {
+impl CalendarConfig {
     fn init(
         line_length: u8,
         day_sep_char: char,
         week_sep_char: char,
         weekend_marker: char,
-    ) -> CallendarConfig {
+    ) -> CalendarConfig {
         let mut day_sep_string = String::new();
         let mut week_sep_string = String::new();
         let mut weekend_line_marker = String::new();
@@ -36,7 +36,7 @@ impl CallendarConfig {
             k += 1;
         }
 
-        CallendarConfig {
+        CalendarConfig {
             date_format: String::from("%Y-%m-%d"),
             line_length,
             weekend_marker,
@@ -56,7 +56,7 @@ struct DateRange {
     range: Vec<NaiveDate>,
 }
 impl DateRange {
-    fn init(from: &str, to: &str, config: CallendarConfig) -> DateRange {
+    fn init(from: &str, to: &str, config: CalendarConfig) -> DateRange {
         let from = match NaiveDate::parse_from_str(from, config.date_format.as_str()) {
             Ok(v) => v,
             Err(e) => panic!("cannot parse -from- date"),
@@ -112,7 +112,7 @@ impl DateUtils {
     }
 }
 
-// impl std::fmt::Display for CallendarConfig {
+// impl std::fmt::Display for CalendarConfig {
 //     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
 //         write!(
 //             f,
@@ -123,7 +123,7 @@ impl DateUtils {
 // }
 
 fn main() {
-    let calendar_config = CallendarConfig::init(35, '-', '=', '#');
+    let calendar_config = CalendarConfig::init(35, '-', '=', '#');
     println!("calendar_config {:?}", calendar_config);
     println!("-----------------------------------------------");
     let dr = DateRange::init("2023-11-11", "2024-01-01", calendar_config);
@@ -140,7 +140,7 @@ mod tests {
 
     #[test]
     fn should_init_data_range() {
-        let calendar_config = CallendarConfig::init(35, '-', '=', '#');
+        let calendar_config = CalendarConfig::init(35, '-', '=', '#');
         let from = "2023-11-11";
         let to = "2023-11-20";
         let formated_from =
