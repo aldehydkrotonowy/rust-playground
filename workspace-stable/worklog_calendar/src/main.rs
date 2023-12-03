@@ -89,7 +89,7 @@ impl DateUtils {
         DateUtils::get_month_short_name(&date).name()
     }
     fn get_week_day_full_name(day: &NaiveDate) -> &str {
-        let weekday = day.weekday();
+        let weekday = DateUtils::get_week_day_short_name(day);
         match weekday {
             Weekday::Mon => "Monday",
             Weekday::Tue => "Tuesday",
@@ -99,6 +99,12 @@ impl DateUtils {
             Weekday::Sat => "Saturday",
             Weekday::Sun => "Sunday",
         }
+    }
+    fn get_next_day(date: &NaiveDate) -> NaiveDate {
+        date.succ_opt().unwrap()
+    }
+    fn get_prev_day(date: &NaiveDate) -> NaiveDate {
+        date.pred_opt().unwrap()
     }
     fn is_weekend(input: &NaiveDate) -> bool {
         let day = input.weekday();
@@ -121,13 +127,39 @@ impl DateUtils {
 //         )
 //     }
 // }
+struct Results {
+    pre_formated: Vec<String>,
+}
+impl Results {
+    fn init(date_range: DateRange) -> Results {
+        let results: Vec<String> = Vec::new();
+        for date in date_range.range.iter() {
+            let week_full_name = DateUtils::get_week_day_full_name(date);
+            let month_full_name = DateUtils::get_month_full_name(date);
+            let is_weekend = DateUtils::is_weekend(date);
+
+            // if next day = is weekend
+            // push ====
+            // else
+            // push ----
+            println!(
+                "loop: {}, {}, {}, {}",
+                date, week_full_name, month_full_name, is_weekend
+            );
+        }
+        Results {
+            pre_formated: results,
+        }
+    }
+}
 
 fn main() {
     let calendar_config = CalendarConfig::init(35, '-', '=', '#');
-    println!("calendar_config {:?}", calendar_config);
-    println!("-----------------------------------------------");
+    // println!("calendar_config {:?}", calendar_config);
+    // println!("-----------------------------------------------");
     let dr = DateRange::init("2023-11-11", "2024-01-01", calendar_config);
-    println!("range date {:?}", dr)
+    // println!("range date {:?}", dr);
+    let results = Results::init(dr);
 }
 
 #[cfg(test)]
