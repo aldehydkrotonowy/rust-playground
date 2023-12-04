@@ -1,4 +1,7 @@
+#[allow(dead_code)]
+#[allow(unused_variables)]
 use chrono::{DateTime, Datelike, Local, Month, NaiveDate, TimeZone, Utc, Weekday};
+use std::fs;
 use std::ops::Sub;
 
 #[derive(Debug)]
@@ -29,9 +32,10 @@ impl CalendarConfig {
             week_sep_string.push(week_sep_char);
             n += 1;
         }
-
+        // TODO
+        // use str..repeat(x)
         let mut k = 1;
-        while k <= 2 {
+        while k <= 4 {
             weekend_line_marker.push(weekend_marker);
             k += 1;
         }
@@ -40,7 +44,7 @@ impl CalendarConfig {
             date_format: String::from("%Y-%m-%d"),
             line_length,
             weekend_marker,
-            weekend_line_marker: weekend_line_marker,
+            weekend_line_marker,
             week_line_sep: week_sep_string,
             day_line_sep: day_sep_string,
             week_sep_char,
@@ -56,14 +60,14 @@ struct DateRange {
     range: Vec<NaiveDate>,
 }
 impl DateRange {
-    fn init(from: &str, to: &str, config: CalendarConfig) -> DateRange {
+    fn init(from: &str, to: &str, config: &CalendarConfig) -> DateRange {
         let from = match NaiveDate::parse_from_str(from, config.date_format.as_str()) {
             Ok(v) => v,
-            Err(e) => panic!("cannot parse -from- date"),
+            Err(e) => panic!("cannot parse -from- date: {}", e),
         };
         let to = match NaiveDate::parse_from_str(to, config.date_format.as_str()) {
             Ok(v) => v,
-            Err(e) => panic!("cannot parse -to- date"),
+            Err(e) => panic!("cannot parse -to- date: {}", e),
         };
         let mut range = Vec::new();
         let diff = to.sub(from).num_days() + 1;
@@ -82,7 +86,7 @@ impl DateUtils {
     fn get_month_short_name(date: &NaiveDate) -> Month {
         match Month::try_from(u8::try_from(date.month()).unwrap()) {
             Ok(v) => v,
-            Err(e) => panic!("cannot get month short name"),
+            Err(e) => panic!("cannot get month short name: {}", e),
         }
     }
     fn get_month_full_name(date: &NaiveDate) -> &str {
@@ -127,25 +131,55 @@ impl DateUtils {
 //         )
 //     }
 // }
+#[derive(Debug)]
 struct Results {
     pre_formated: Vec<String>,
 }
 impl Results {
-    fn init(date_range: DateRange) -> Results {
-        let results: Vec<String> = Vec::new();
+    fn init(date_range: DateRange, calendar_config: &CalendarConfig) -> Results {
+        let mut results: Vec<String> = Vec::new();
         for date in date_range.range.iter() {
             let week_full_name = DateUtils::get_week_day_full_name(date);
             let month_full_name = DateUtils::get_month_full_name(date);
             let is_weekend = DateUtils::is_weekend(date);
+            let next_date = DateUtils::get_next_day(date);
 
-            // if next day = is weekend
-            // push ====
-            // else
-            // push ----
-            println!(
-                "loop: {}, {}, {}, {}",
-                date, week_full_name, month_full_name, is_weekend
-            );
+            let mut day_separator: String = calendar_config.day_line_sep.clone();
+            let mut week_sep: String = calendar_config.week_line_sep.clone();
+
+            if date.day() == 1 {
+                // TODO
+                // change this to month name
+                week_sep.push_str("dkakfadlkfakdfj");
+                day_separator.push_str("dkakfadlkfakdfj")
+            }
+
+            let mut _day_str = String::from("");
+
+            // build date line
+            let u_line_length = usize::try_from(calendar_config.line_length).unwrap();
+            let padding = " ".repeat(u_line_length);
+            _day_str.push_str(date.to_string().as_str());
+            _day_str.push_str(" ");
+            _day_str.push_str(week_full_name);
+            _day_str.push_str(&padding);
+
+            let mut line_with_padding: String = _day_str.chars().take(u_line_length).collect();
+
+            let should_add_weekend_sep = line_with_padding.contains("Sunday")
+                || line_with_padding.contains("Saturday")
+                || line_with_padding.contains("Monday");
+
+            if is_weekend {
+                line_with_padding.push_str(calendar_config.weekend_line_marker.as_str());
+            }
+
+            if should_add_weekend_sep {
+                results.push(week_sep);
+            } else {
+                results.push(day_separator);
+            }
+            results.push(line_with_padding);
         }
         Results {
             pre_formated: results,
@@ -155,11 +189,14 @@ impl Results {
 
 fn main() {
     let calendar_config = CalendarConfig::init(35, '-', '=', '#');
-    // println!("calendar_config {:?}", calendar_config);
-    // println!("-----------------------------------------------");
-    let dr = DateRange::init("2023-11-11", "2024-01-01", calendar_config);
-    // println!("range date {:?}", dr);
-    let results = Results::init(dr);
+    let dr = DateRange::init("2023-11-11", "2024-01-01", &calendar_config);
+    let results = Results::init(dr, &calendar_config);
+    // println!("{:?}", results.pre_formated.join("\n"));
+    let file_path = "output.txt";
+    match fs::write(file_path, results.pre_formated.join("\n")) {
+        Ok(_) => println!("File written successfully."),
+        Err(e) => eprintln!("Error writing to file: {}", e),
+    }
 }
 
 #[cfg(test)]
@@ -180,7 +217,7 @@ mod tests {
         let formated_to =
             NaiveDate::parse_from_str(to, &calendar_config.date_format.as_str()).unwrap();
 
-        let date_list = DateRange::init(from, to, calendar_config);
+        let date_list = DateRange::init(from, to, &calendar_config);
         assert_eq!(date_list.from, formated_from);
         assert_eq!(date_list.to, formated_to);
         assert_eq!(date_list.range.len(), 10);
