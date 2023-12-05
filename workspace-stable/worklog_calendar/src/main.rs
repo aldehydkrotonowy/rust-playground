@@ -1,6 +1,6 @@
-#[allow(dead_code)]
-#[allow(unused_variables)]
-use chrono::{DateTime, Datelike, Local, Month, NaiveDate, TimeZone, Utc, Weekday};
+// #[allow(dead_code)]
+// #[allow(unused_variables)]
+use chrono::{Datelike, Month, NaiveDate, Weekday};
 use std::fs;
 use std::ops::Sub;
 
@@ -8,12 +8,9 @@ use std::ops::Sub;
 struct CalendarConfig {
     date_format: String,
     line_length: u8,
-    weekend_marker: char,
     weekend_line_marker: String,
     week_line_sep: String,
     day_line_sep: String,
-    week_sep_char: char,
-    day_sep_char: char,
 }
 impl CalendarConfig {
     fn init(
@@ -22,41 +19,27 @@ impl CalendarConfig {
         week_sep_char: char,
         weekend_marker: char,
     ) -> CalendarConfig {
-        let mut day_sep_string = String::new();
-        let mut week_sep_string = String::new();
-        let mut weekend_line_marker = String::new();
+        let day_sep_string = day_sep_char
+            .to_string()
+            .repeat(usize::try_from(line_length).unwrap());
 
-        let mut n = 1;
-        while n <= line_length {
-            day_sep_string.push(day_sep_char);
-            week_sep_string.push(week_sep_char);
-            n += 1;
-        }
-        // TODO
-        // use str..repeat(x)
-        let mut k = 1;
-        while k <= 4 {
-            weekend_line_marker.push(weekend_marker);
-            k += 1;
-        }
+        let week_sep_string = week_sep_char
+            .to_string()
+            .repeat(usize::try_from(line_length).unwrap());
+
+        let weekend_line_marker = weekend_marker.to_string().repeat(4);
 
         CalendarConfig {
             date_format: String::from("%Y-%m-%d"),
             line_length,
-            weekend_marker,
             weekend_line_marker,
             week_line_sep: week_sep_string,
             day_line_sep: day_sep_string,
-            week_sep_char,
-            day_sep_char,
         }
     }
 }
 
-#[derive(Debug)]
 struct DateRange {
-    from: NaiveDate,
-    to: NaiveDate,
     range: Vec<NaiveDate>,
 }
 impl DateRange {
@@ -74,7 +57,7 @@ impl DateRange {
         for (_idx, d) in from.iter_days().take(diff.try_into().unwrap()).enumerate() {
             range.push(d)
         }
-        DateRange { from, to, range }
+        DateRange { range }
     }
 }
 
@@ -104,12 +87,12 @@ impl DateUtils {
             Weekday::Sun => "Sunday",
         }
     }
-    fn get_next_day(date: &NaiveDate) -> NaiveDate {
-        date.succ_opt().unwrap()
-    }
-    fn get_prev_day(date: &NaiveDate) -> NaiveDate {
-        date.pred_opt().unwrap()
-    }
+    // fn get_next_day(date: &NaiveDate) -> NaiveDate {
+    //     date.succ_opt().unwrap()
+    // }
+    // fn get_prev_day(date: &NaiveDate) -> NaiveDate {
+    //     date.pred_opt().unwrap()
+    // }
     fn is_weekend(input: &NaiveDate) -> bool {
         let day = input.weekday();
         if day == Weekday::Sat {
@@ -142,16 +125,14 @@ impl Results {
             let week_full_name = DateUtils::get_week_day_full_name(date);
             let month_full_name = DateUtils::get_month_full_name(date);
             let is_weekend = DateUtils::is_weekend(date);
-            let next_date = DateUtils::get_next_day(date);
+            // let next_date = DateUtils::get_next_day(date);
 
             let mut day_separator: String = calendar_config.day_line_sep.clone();
             let mut week_sep: String = calendar_config.week_line_sep.clone();
 
             if date.day() == 1 {
-                // TODO
-                // change this to month name
-                week_sep.push_str("dkakfadlkfakdfj");
-                day_separator.push_str("dkakfadlkfakdfj")
+                week_sep.push_str(month_full_name);
+                day_separator.push_str(month_full_name)
             }
 
             let mut _day_str = String::from("");
@@ -159,7 +140,7 @@ impl Results {
             // build date line
             let u_line_length = usize::try_from(calendar_config.line_length).unwrap();
             let padding = " ".repeat(u_line_length);
-            _day_str.push_str(date.to_string().as_str());
+            _day_str.push_str(date.format("%d.%m.%Y").to_string().as_str());
             _day_str.push_str(" ");
             _day_str.push_str(week_full_name);
             _day_str.push_str(&padding);
@@ -191,7 +172,7 @@ fn main() {
     let calendar_config = CalendarConfig::init(35, '-', '=', '#');
     let dr = DateRange::init("2023-11-11", "2024-01-01", &calendar_config);
     let results = Results::init(dr, &calendar_config);
-    // println!("{:?}", results.pre_formated.join("\n"));
+
     let file_path = "output.txt";
     match fs::write(file_path, results.pre_formated.join("\n")) {
         Ok(_) => println!("File written successfully."),
@@ -200,73 +181,72 @@ fn main() {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+// mod tests {
+//     use super::*;
 
-    fn get_naive_date(date: &str) -> NaiveDate {
-        NaiveDate::parse_from_str(date, "%Y-%m-%d").unwrap()
-    }
-
-    #[test]
-    fn should_init_data_range() {
-        let calendar_config = CalendarConfig::init(35, '-', '=', '#');
-        let from = "2023-11-11";
-        let to = "2023-11-20";
-        let formated_from =
-            NaiveDate::parse_from_str(from, &calendar_config.date_format.as_str()).unwrap();
-        let formated_to =
-            NaiveDate::parse_from_str(to, &calendar_config.date_format.as_str()).unwrap();
-
-        let date_list = DateRange::init(from, to, &calendar_config);
-        assert_eq!(date_list.from, formated_from);
-        assert_eq!(date_list.to, formated_to);
-        assert_eq!(date_list.range.len(), 10);
-        assert!(date_list.range.contains(&formated_from));
-        assert!(date_list.range.contains(&formated_to))
-    }
-    #[test]
-    fn should_get_week_day_short_name() {
-        let single_date = "2023-11-21";
-        let formated_date = get_naive_date(single_date);
-        let day = DateUtils::get_week_day_short_name(&formated_date);
-        assert_eq!(day, Weekday::Tue);
-    }
-    #[test]
-    fn should_get_week_day_full_name() {
-        let single_date = "2023-11-21";
-        let formatted_date = get_naive_date(single_date);
-        let full_day_name = DateUtils::get_week_day_full_name(&formatted_date);
-        assert_eq!(full_day_name, "Tuesday")
-    }
-    #[test]
-    fn should_get_month_short_name() {
-        let single_date = "2023-11-21";
-        let formated_date = get_naive_date(single_date);
-        let short_month_name = DateUtils::get_month_short_name(&formated_date);
-        assert_eq!(short_month_name, Month::November);
-    }
-    #[test]
-    fn should_get_month_full_name() {
-        let single_date = "2023-11-21";
-        let formated_date = get_naive_date(single_date);
-        let short_month_name = DateUtils::get_month_full_name(&formated_date);
-        assert_eq!(short_month_name, "November");
-    }
-    #[test]
-    fn should_check_is_weekend() {
-        let friday = "2023-11-24";
-        let saturday = "2023-11-25";
-        let sunday = "2023-11-26";
-
-        let formated_fri = get_naive_date(friday);
-        let formated_sat = get_naive_date(saturday);
-        let formated_sun = get_naive_date(sunday);
-
-        let sat = DateUtils::is_weekend(&formated_sat);
-        assert_eq!(sat, true);
-        let sun = DateUtils::is_weekend(&formated_sun);
-        assert_eq!(sun, true);
-        let fri = DateUtils::is_weekend(&formated_fri);
-        assert_eq!(fri, false);
-    }
+fn get_naive_date(date: &str) -> NaiveDate {
+    NaiveDate::parse_from_str(date, "%Y-%m-%d").unwrap()
 }
+
+#[test]
+fn should_init_data_range() {
+    let calendar_config = CalendarConfig::init(35, '-', '=', '#');
+    let from = "2023-11-11";
+    let to = "2023-11-20";
+    let formated_from =
+        NaiveDate::parse_from_str(from, &calendar_config.date_format.as_str()).unwrap();
+    let formated_to = NaiveDate::parse_from_str(to, &calendar_config.date_format.as_str()).unwrap();
+
+    let date_list = DateRange::init(from, to, &calendar_config);
+    assert_eq!(get_naive_date(from), formated_from);
+    assert_eq!(get_naive_date(to), formated_to);
+    assert_eq!(date_list.range.len(), 10);
+    assert!(date_list.range.contains(&formated_from));
+    assert!(date_list.range.contains(&formated_to))
+}
+#[test]
+fn should_get_week_day_short_name() {
+    let single_date = "2023-11-21";
+    let formated_date = get_naive_date(single_date);
+    let day = DateUtils::get_week_day_short_name(&formated_date);
+    assert_eq!(day, Weekday::Tue);
+}
+#[test]
+fn should_get_week_day_full_name() {
+    let single_date = "2023-11-21";
+    let formatted_date = get_naive_date(single_date);
+    let full_day_name = DateUtils::get_week_day_full_name(&formatted_date);
+    assert_eq!(full_day_name, "Tuesday")
+}
+#[test]
+fn should_get_month_short_name() {
+    let single_date = "2023-11-21";
+    let formated_date = get_naive_date(single_date);
+    let short_month_name = DateUtils::get_month_short_name(&formated_date);
+    assert_eq!(short_month_name, Month::November);
+}
+#[test]
+fn should_get_month_full_name() {
+    let single_date = "2023-11-21";
+    let formated_date = get_naive_date(single_date);
+    let short_month_name = DateUtils::get_month_full_name(&formated_date);
+    assert_eq!(short_month_name, "November");
+}
+#[test]
+fn should_check_is_weekend() {
+    let friday = "2023-11-24";
+    let saturday = "2023-11-25";
+    let sunday = "2023-11-26";
+
+    let formated_fri = get_naive_date(friday);
+    let formated_sat = get_naive_date(saturday);
+    let formated_sun = get_naive_date(sunday);
+
+    let sat = DateUtils::is_weekend(&formated_sat);
+    assert_eq!(sat, true);
+    let sun = DateUtils::is_weekend(&formated_sun);
+    assert_eq!(sun, true);
+    let fri = DateUtils::is_weekend(&formated_fri);
+    assert_eq!(fri, false);
+}
+// }
